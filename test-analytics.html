@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Analytics - DevHabits</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste do Sistema de Analytics</h1>
+    
+    <div class="test-section">
+        <h2>1. Verificação de Elementos DOM</h2>
+        <button onclick="testDOMElements()">Testar Elementos DOM</button>
+        <div id="domOutput" class="output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Teste de LocalStorage</h2>
+        <button onclick="testLocalStorage()">Testar LocalStorage</button>
+        <button onclick="clearLocalStorage()">Limpar LocalStorage</button>
+        <div id="storageOutput" class="output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Simulação de Analytics</h2>
+        <button onclick="simulateAnalytics()">Simular Dados de Analytics</button>
+        <button onclick="testAnalyticsModal()">Testar Modal de Analytics</button>
+        <div id="analyticsOutput" class="output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Teste do Site Principal</h2>
+        <p>Abra o console do navegador (F12) e vá para o site principal:</p>
+        <button onclick="window.open('https://aluizab.github.io/devhabits/', '_blank')">Abrir DevHabits</button>
+        <p>No console, digite: <code>habitTracker.debugAnalytics()</code></p>
+    </div>
+
+    <script>
+        function testDOMElements() {
+            const output = document.getElementById('domOutput');
+            let result = 'Testando elementos DOM necessários:\n\n';
+            
+            // Simular elementos que deveriam existir
+            const elements = [
+                'analyticsBtn',
+                'analyticsModal', 
+                'analyticsData',
+                'closeAnalyticsModal',
+                'exportAnalytics',
+                'clearAnalytics'
+            ];
+            
+            elements.forEach(id => {
+                const exists = document.getElementById(id) !== null;
+                result += `${id}: ${exists ? '✅ Encontrado' : '❌ Não encontrado'}\n`;
+            });
+            
+            output.textContent = result;
+        }
+        
+        function testLocalStorage() {
+            const output = document.getElementById('storageOutput');
+            let result = 'Testando LocalStorage:\n\n';
+            
+            try {
+                // Testar se localStorage está disponível
+                localStorage.setItem('test', 'value');
+                localStorage.removeItem('test');
+                result += '✅ LocalStorage disponível\n\n';
+                
+                // Verificar dados existentes
+                const analytics = localStorage.getItem('devhabits-analytics');
+                const visitorId = localStorage.getItem('devhabits-visitor-id');
+                
+                result += `Analytics data: ${analytics ? '✅ Existe' : '❌ Não existe'}\n`;
+                result += `Visitor ID: ${visitorId ? '✅ Existe' : '❌ Não existe'}\n\n`;
+                
+                if (analytics) {
+                    const data = JSON.parse(analytics);
+                    result += `Total de visitas: ${data.totalVisits || 0}\n`;
+                    result += `Visitantes únicos: ${data.uniqueVisitors || 0}\n`;
+                    result += `Dias com dados: ${Object.keys(data.dailyVisits || {}).length}\n`;
+                }
+                
+            } catch (error) {
+                result += `❌ Erro: ${error.message}\n`;
+            }
+            
+            output.textContent = result;
+        }
+        
+        function clearLocalStorage() {
+            localStorage.removeItem('devhabits-analytics');
+            localStorage.removeItem('devhabits-visitor-id');
+            document.getElementById('storageOutput').textContent = '🗑️ LocalStorage limpo!';
+        }
+        
+        function simulateAnalytics() {
+            const output = document.getElementById('analyticsOutput');
+            
+            try {
+                // Simular dados de analytics
+                const mockAnalytics = {
+                    totalVisits: 25,
+                    uniqueVisitors: 8,
+                    dailyVisits: {},
+                    firstVisit: new Date().toISOString(),
+                    lastVisit: new Date().toISOString(),
+                    sessions: [],
+                    userAgent: navigator.userAgent,
+                    referrer: document.referrer || 'Direct',
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
+                
+                // Adicionar dados dos últimos 7 dias
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toDateString();
+                    
+                    mockAnalytics.dailyVisits[dateStr] = {
+                        visits: Math.floor(Math.random() * 10) + 1,
+                        uniqueVisitors: new Set(['visitor_1', 'visitor_2']),
+                        sessions: [],
+                        date: dateStr
+                    };
+                }
+                
+                // Salvar no localStorage
+                localStorage.setItem('devhabits-analytics', JSON.stringify(mockAnalytics));
+                localStorage.setItem('devhabits-visitor-id', 'test_visitor_' + Date.now());
+                
+                output.textContent = '✅ Dados de analytics simulados criados!\n\nAgora vá para o site principal e teste o botão Analytics.';
+                
+            } catch (error) {
+                output.textContent = `❌ Erro ao simular analytics: ${error.message}`;
+            }
+        }
+        
+        function testAnalyticsModal() {
+            const output = document.getElementById('analyticsOutput');
+            
+            // Verificar se há dados
+            const analytics = localStorage.getItem('devhabits-analytics');
+            if (!analytics) {
+                output.textContent = '❌ Nenhum dado de analytics encontrado. Execute "Simular Dados de Analytics" primeiro.';
+                return;
+            }
+            
+            try {
+                const data = JSON.parse(analytics);
+                let result = '📊 Dados de Analytics encontrados:\n\n';
+                result += `Total de visitas: ${data.totalVisits}\n`;
+                result += `Visitantes únicos: ${data.uniqueVisitors}\n`;
+                result += `Dias com dados: ${Object.keys(data.dailyVisits).length}\n`;
+                result += `Primeira visita: ${new Date(data.firstVisit).toLocaleString('pt-BR')}\n`;
+                result += `Última visita: ${new Date(data.lastVisit).toLocaleString('pt-BR')}\n\n`;
+                result += '✅ Dados válidos! O modal de analytics deveria funcionar.';
+                
+                output.textContent = result;
+                
+            } catch (error) {
+                output.textContent = `❌ Erro ao analisar dados: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

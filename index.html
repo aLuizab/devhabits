@@ -332,6 +332,46 @@
         </div>
     </div>
 
+    <!-- Modal de Autenticação Analytics -->
+    <div id="analyticsAuthModal" class="modal">
+        <div class="modal-content auth-modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-lock"></i> Acesso Restrito - Analytics</h3>
+                <span class="close" id="closeAnalyticsAuthModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="auth-info">
+                    <p><i class="fas fa-shield-alt"></i> Esta área é restrita ao administrador do sistema.</p>
+                    <p>Digite a senha para acessar as funcionalidades de exportação e limpeza de dados.</p>
+                </div>
+                <div class="auth-form">
+                    <label for="analyticsPassword">
+                        <i class="fas fa-key"></i> Senha de Administrador:
+                    </label>
+                    <input 
+                        type="password" 
+                        id="analyticsPassword" 
+                        placeholder="Digite a senha..."
+                        autocomplete="off"
+                    >
+                    <div class="auth-actions">
+                        <button id="analyticsAuthBtn" class="btn btn-primary">
+                            <i class="fas fa-unlock"></i> Autenticar
+                        </button>
+                    </div>
+                </div>
+                <div class="auth-security">
+                    <p><i class="fas fa-info-circle"></i> <strong>Informações de Segurança:</strong></p>
+                    <ul>
+                        <li>Sessão expira em 30 minutos</li>
+                        <li>Apenas visualização é permitida sem autenticação</li>
+                        <li>Exportação e limpeza requerem senha</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Analytics -->
     <div id="analyticsModal" class="modal">
         <div class="modal-content analytics-modal">
@@ -351,6 +391,10 @@
                 <button id="exportAnalytics" class="btn btn-primary">
                     <i class="fas fa-download"></i> Exportar JSON
                 </button>
+                <div class="auth-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Exportação e limpeza requerem autenticação de administrador</span>
+                </div>
             </div>
         </div>
     </div>

@@ -59,6 +59,10 @@ class HabitTracker {
         this.activeHabit = null; // Track currently active habit
         this.currentTheme = localStorage.getItem('theme') || 'light';
         this.analytics = this.loadAnalytics();
+        this.analyticsAuth = {
+            isAuthenticated: false,
+            sessionTimeout: null
+        };
 
         this.init();
     }
@@ -180,6 +184,15 @@ class HabitTracker {
         document.getElementById('closeAnalyticsModal').addEventListener('click', () => this.closeAnalyticsModal());
         document.getElementById('exportAnalytics').addEventListener('click', () => this.exportAnalytics());
         document.getElementById('clearAnalytics').addEventListener('click', () => this.clearAnalytics());
+
+        // Analytics Authentication
+        document.getElementById('analyticsAuthBtn').addEventListener('click', () => this.handleAnalyticsAuth());
+        document.getElementById('closeAnalyticsAuthModal').addEventListener('click', () => this.closeAnalyticsAuthModal());
+        document.getElementById('analyticsPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.handleAnalyticsAuth();
+            }
+        });
 
         // Suggestions modal
         document.getElementById('suggestionsBtn').addEventListener('click', () => this.openSuggestionsModal());
@@ -399,6 +412,11 @@ class HabitTracker {
     }
 
     openAnalyticsModal() {
+        // Verificar autenticação primeiro
+        if (!this.checkAnalyticsAuth()) {
+            return;
+        }
+
         try {
             console.log('Opening analytics modal...');
             const modal = document.getElementById('analyticsModal');
@@ -450,7 +468,13 @@ class HabitTracker {
             
             console.log('Statistics calculated:', { totalDays, avgVisitsPerDay, last7Days: last7Days.length, last30Days: last30Days.length });
             
+            // Status de autenticação
+            const authStatus = this.analyticsAuth.isAuthenticated ? 
+                '<div class="auth-status authenticated"><i class="fas fa-unlock"></i> Acesso Administrativo Ativo</div>' :
+                '<div class="auth-status not-authenticated"><i class="fas fa-lock"></i> Modo Somente Leitura</div>';
+            
             container.innerHTML = `
+                ${authStatus}
                 <div class="analytics-overview">
                     <div class="analytics-card">
                         <div class="analytics-number">${analytics.totalVisits}</div>
@@ -597,6 +621,11 @@ class HabitTracker {
     }
 
     exportAnalytics() {
+        if (!this.analyticsAuth.isAuthenticated) {
+            this.showToast('Acesso negado! Autenticação necessária. 🔒', 'error');
+            return;
+        }
+
         const data = {
             exportDate: new Date().toISOString(),
             analytics: this.analytics,
@@ -623,6 +652,11 @@ class HabitTracker {
     }
 
     clearAnalytics() {
+        if (!this.analyticsAuth.isAuthenticated) {
+            this.showToast('Acesso negado! Autenticação necessária. 🔒', 'error');
+            return;
+        }
+
         if (confirm('Tem certeza que deseja limpar todos os dados de analytics? Esta ação não pode ser desfeita.')) {
             localStorage.removeItem('devhabits-analytics');
             localStorage.removeItem('devhabits-visitor-id');
@@ -643,6 +677,69 @@ class HabitTracker {
         console.log('LocalStorage visitor ID:', localStorage.getItem('devhabits-visitor-id'));
         console.log('========================');
         return this.analytics;
+    }
+
+    // Analytics Authentication Methods
+    authenticateAnalytics(password) {
+        // Hash simples da senha (em produção, usar hash mais seguro)
+        const correctPasswordHash = 'devhabits2025admin'; // Senha: devhabits2025admin
+        
+        if (password === correctPasswordHash) {
+            this.analyticsAuth.isAuthenticated = true;
+            
+            // Sessão expira em 30 minutos
+            if (this.analyticsAuth.sessionTimeout) {
+                clearTimeout(this.analyticsAuth.sessionTimeout);
+            }
+            
+            this.analyticsAuth.sessionTimeout = setTimeout(() => {
+                this.analyticsAuth.isAuthenticated = false;
+                this.showToast('Sessão de analytics expirada. Faça login novamente.', 'warning');
+            }, 30 * 60 * 1000); // 30 minutos
+            
+            return true;
+        }
+        return false;
+    }
+
+    showAnalyticsAuthModal() {
+        const authModal = document.getElementById('analyticsAuthModal');
+        if (authModal) {
+            authModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            document.getElementById('analyticsPassword').focus();
+        }
+    }
+
+    closeAnalyticsAuthModal() {
+        const authModal = document.getElementById('analyticsAuthModal');
+        if (authModal) {
+            authModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('analyticsPassword').value = '';
+        }
+    }
+
+    handleAnalyticsAuth() {
+        const password = document.getElementById('analyticsPassword').value;
+        
+        if (this.authenticateAnalytics(password)) {
+            this.closeAnalyticsAuthModal();
+            this.openAnalyticsModal();
+            this.showToast('Acesso autorizado ao analytics! 🔓', 'success');
+        } else {
+            this.showToast('Senha incorreta! Acesso negado. 🔒', 'error');
+            document.getElementById('analyticsPassword').value = '';
+            document.getElementById('analyticsPassword').focus();
+        }
+    }
+
+    checkAnalyticsAuth() {
+        if (!this.analyticsAuth.isAuthenticated) {
+            this.showAnalyticsAuthModal();
+            return false;
+        }
+        return true;
     }
 
     // Suggestions Methods
