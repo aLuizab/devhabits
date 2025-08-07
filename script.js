@@ -58,6 +58,7 @@ class HabitTracker {
         this.currentFilter = 'all';
         this.activeHabit = null; // Track currently active habit
         this.currentTheme = localStorage.getItem('theme') || 'light';
+        this.analytics = this.loadAnalytics();
 
         this.init();
     }
@@ -66,6 +67,7 @@ class HabitTracker {
         this.checkNewDay();
         this.setupEventListeners();
         this.applyTheme(); // Apply saved theme
+        this.trackVisit(); // Track page visit
         this.updateModeButtons(); // Update mode buttons with custom times
         this.updateActiveHabitDisplay(); // Initialize active habit display
         this.renderHabits();
@@ -167,6 +169,12 @@ class HabitTracker {
         // Theme toggle
         document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
 
+        // Analytics
+        document.getElementById('analyticsBtn').addEventListener('click', () => this.openAnalyticsModal());
+        document.getElementById('closeAnalyticsModal').addEventListener('click', () => this.closeAnalyticsModal());
+        document.getElementById('exportAnalytics').addEventListener('click', () => this.exportAnalytics());
+        document.getElementById('clearAnalytics').addEventListener('click', () => this.clearAnalytics());
+
         // Suggestions modal
         document.getElementById('suggestionsBtn').addEventListener('click', () => this.openSuggestionsModal());
         document.getElementById('closeSuggestionsModal').addEventListener('click', () => this.closeSuggestionsModal());
@@ -237,6 +245,329 @@ class HabitTracker {
         const icon = document.querySelector('#themeToggle i');
         if (icon) {
             icon.className = this.currentTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+    }
+
+    // Analytics Methods
+    loadAnalytics() {
+        const stored = localStorage.getItem('devhabits-analytics');
+        if (stored) {
+            return JSON.parse(stored);
+        }
+        
+        return {
+            totalVisits: 0,
+            uniqueVisitors: 0,
+            dailyVisits: {},
+            firstVisit: new Date().toISOString(),
+            lastVisit: null,
+            sessions: [],
+            userAgent: navigator.userAgent,
+            referrer: document.referrer || 'Direct',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+    }
+
+    saveAnalytics() {
+        localStorage.setItem('devhabits-analytics', JSON.stringify(this.analytics));
+    }
+
+    trackVisit() {
+        const now = new Date();
+        const today = now.toDateString();
+        const sessionId = this.generateSessionId();
+        
+        // Update total visits
+        this.analytics.totalVisits++;
+        this.analytics.lastVisit = now.toISOString();
+        
+        // Track daily visits
+        if (!this.analytics.dailyVisits[today]) {
+            this.analytics.dailyVisits[today] = {
+                visits: 0,
+                uniqueVisitors: new Set(),
+                sessions: [],
+                date: today
+            };
+        }
+        
+        this.analytics.dailyVisits[today].visits++;
+        
+        // Track unique visitors (simplified - based on localStorage presence)
+        const visitorId = this.getVisitorId();
+        this.analytics.dailyVisits[today].uniqueVisitors.add(visitorId);
+        
+        // Track session
+        const session = {
+            id: sessionId,
+            start: now.toISOString(),
+            visitorId: visitorId,
+            userAgent: navigator.userAgent,
+            referrer: document.referrer || 'Direct',
+            url: window.location.href
+        };
+        
+        this.analytics.sessions.push(session);
+        this.analytics.dailyVisits[today].sessions.push(session);
+        
+        // Keep only last 30 days of detailed data
+        this.cleanOldAnalytics();
+        
+        this.saveAnalytics();
+        
+        // Track page visibility changes
+        this.trackPageVisibility(sessionId);
+    }
+
+    generateSessionId() {
+        return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    getVisitorId() {
+        let visitorId = localStorage.getItem('devhabits-visitor-id');
+        if (!visitorId) {
+            visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('devhabits-visitor-id', visitorId);
+            this.analytics.uniqueVisitors++;
+        }
+        return visitorId;
+    }
+
+    trackPageVisibility(sessionId) {
+        let isVisible = !document.hidden;
+        let sessionStart = Date.now();
+        
+        const updateSession = () => {
+            const session = this.analytics.sessions.find(s => s.id === sessionId);
+            if (session) {
+                session.duration = Date.now() - sessionStart;
+                session.end = new Date().toISOString();
+                this.saveAnalytics();
+            }
+        };
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isVisible) {
+                // Page became hidden
+                isVisible = false;
+                updateSession();
+            } else if (!document.hidden && !isVisible) {
+                // Page became visible
+                isVisible = true;
+                sessionStart = Date.now();
+            }
+        });
+
+        // Update session on page unload
+        window.addEventListener('beforeunload', updateSession);
+    }
+
+    cleanOldAnalytics() {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        // Remove old daily visits
+        Object.keys(this.analytics.dailyVisits).forEach(dateStr => {
+            const date = new Date(dateStr);
+            if (date < thirtyDaysAgo) {
+                delete this.analytics.dailyVisits[dateStr];
+            }
+        });
+        
+        // Keep only recent sessions
+        this.analytics.sessions = this.analytics.sessions.filter(session => {
+            const sessionDate = new Date(session.start);
+            return sessionDate >= thirtyDaysAgo;
+        });
+    }
+
+    openAnalyticsModal() {
+        const modal = document.getElementById('analyticsModal');
+        this.renderAnalyticsData();
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    closeAnalyticsModal() {
+        const modal = document.getElementById('analyticsModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    renderAnalyticsData() {
+        const container = document.getElementById('analyticsData');
+        const analytics = this.analytics;
+        
+        // Calculate statistics
+        const totalDays = Object.keys(analytics.dailyVisits).length;
+        const avgVisitsPerDay = totalDays > 0 ? (analytics.totalVisits / totalDays).toFixed(1) : 0;
+        const last7Days = this.getLast7DaysData();
+        const last30Days = this.getLast30DaysData();
+        
+        container.innerHTML = `
+            <div class="analytics-overview">
+                <div class="analytics-card">
+                    <div class="analytics-number">${analytics.totalVisits}</div>
+                    <div class="analytics-label">Total de Visitas</div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-number">${analytics.uniqueVisitors}</div>
+                    <div class="analytics-label">Visitantes Únicos</div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-number">${totalDays}</div>
+                    <div class="analytics-label">Dias com Dados</div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-number">${avgVisitsPerDay}</div>
+                    <div class="analytics-label">Média/Dia</div>
+                </div>
+            </div>
+
+            <div class="analytics-section">
+                <h4><i class="fas fa-calendar-week"></i> Últimos 7 Dias</h4>
+                <div class="analytics-chart">
+                    ${this.renderDailyChart(last7Days)}
+                </div>
+                <div class="analytics-summary">
+                    <span><strong>Total:</strong> ${last7Days.reduce((sum, day) => sum + day.visits, 0)} visitas</span>
+                    <span><strong>Média:</strong> ${(last7Days.reduce((sum, day) => sum + day.visits, 0) / 7).toFixed(1)}/dia</span>
+                </div>
+            </div>
+
+            <div class="analytics-section">
+                <h4><i class="fas fa-calendar-alt"></i> Últimos 30 Dias</h4>
+                <div class="analytics-table">
+                    ${this.renderDailyTable(last30Days)}
+                </div>
+            </div>
+
+            <div class="analytics-section">
+                <h4><i class="fas fa-info-circle"></i> Informações Técnicas</h4>
+                <div class="analytics-info">
+                    <p><strong>Primeira visita:</strong> ${new Date(analytics.firstVisit).toLocaleString('pt-BR')}</p>
+                    <p><strong>Última visita:</strong> ${analytics.lastVisit ? new Date(analytics.lastVisit).toLocaleString('pt-BR') : 'N/A'}</p>
+                    <p><strong>Fuso horário:</strong> ${analytics.timezone}</p>
+                    <p><strong>Referrer:</strong> ${analytics.referrer}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    getLast7DaysData() {
+        const days = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toDateString();
+            
+            const dayData = this.analytics.dailyVisits[dateStr] || { visits: 0, uniqueVisitors: new Set() };
+            days.push({
+                date: dateStr,
+                shortDate: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                visits: dayData.visits,
+                uniqueVisitors: dayData.uniqueVisitors.size || 0
+            });
+        }
+        return days;
+    }
+
+    getLast30DaysData() {
+        const days = [];
+        for (let i = 29; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toDateString();
+            
+            const dayData = this.analytics.dailyVisits[dateStr] || { visits: 0, uniqueVisitors: new Set() };
+            if (dayData.visits > 0) {
+                days.push({
+                    date: dateStr,
+                    fullDate: date.toLocaleDateString('pt-BR'),
+                    visits: dayData.visits,
+                    uniqueVisitors: dayData.uniqueVisitors.size || 0
+                });
+            }
+        }
+        return days.reverse();
+    }
+
+    renderDailyChart(data) {
+        const maxVisits = Math.max(...data.map(d => d.visits), 1);
+        
+        return `
+            <div class="chart-container">
+                ${data.map(day => `
+                    <div class="chart-bar">
+                        <div class="bar" style="height: ${(day.visits / maxVisits) * 100}%" title="${day.visits} visitas em ${day.shortDate}"></div>
+                        <div class="bar-label">${day.shortDate}</div>
+                        <div class="bar-value">${day.visits}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    renderDailyTable(data) {
+        if (data.length === 0) {
+            return '<p class="no-data">Nenhum dado disponível para os últimos 30 dias.</p>';
+        }
+
+        return `
+            <table class="analytics-table-content">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Visitas</th>
+                        <th>Visitantes Únicos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(day => `
+                        <tr>
+                            <td>${day.fullDate}</td>
+                            <td>${day.visits}</td>
+                            <td>${day.uniqueVisitors}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    exportAnalytics() {
+        const data = {
+            exportDate: new Date().toISOString(),
+            analytics: this.analytics,
+            summary: {
+                totalVisits: this.analytics.totalVisits,
+                uniqueVisitors: this.analytics.uniqueVisitors,
+                totalDays: Object.keys(this.analytics.dailyVisits).length,
+                avgVisitsPerDay: Object.keys(this.analytics.dailyVisits).length > 0 ? 
+                    (this.analytics.totalVisits / Object.keys(this.analytics.dailyVisits).length).toFixed(2) : 0
+            }
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `devhabits-analytics-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        this.showToast('Analytics exportados com sucesso! 📊', 'success');
+    }
+
+    clearAnalytics() {
+        if (confirm('Tem certeza que deseja limpar todos os dados de analytics? Esta ação não pode ser desfeita.')) {
+            localStorage.removeItem('devhabits-analytics');
+            localStorage.removeItem('devhabits-visitor-id');
+            this.analytics = this.loadAnalytics();
+            this.closeAnalyticsModal();
+            this.showToast('Dados de analytics limpos com sucesso! 🗑️', 'success');
         }
     }
 
@@ -456,6 +787,11 @@ class HabitTracker {
         localStorage.removeItem('habits');
         localStorage.removeItem('pomodoroStats');
         localStorage.removeItem('timerSettings');
+        localStorage.removeItem('devhabits-analytics');
+        localStorage.removeItem('devhabits-visitor-id');
+
+        // Reset analytics
+        this.analytics = this.loadAnalytics();
 
         // Update UI
         this.updateModeButtons();
