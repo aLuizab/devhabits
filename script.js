@@ -74,6 +74,12 @@ class HabitTracker {
         this.updateStats();
         this.updateTimerDisplay();
         this.updatePomodoroStats();
+        
+        // Debug analytics after initialization
+        setTimeout(() => {
+            console.log('DevHabits initialized. Analytics debug:');
+            this.debugAnalytics();
+        }, 1000);
     }
 
     checkNewDay() {
@@ -273,50 +279,61 @@ class HabitTracker {
     }
 
     trackVisit() {
-        const now = new Date();
-        const today = now.toDateString();
-        const sessionId = this.generateSessionId();
-        
-        // Update total visits
-        this.analytics.totalVisits++;
-        this.analytics.lastVisit = now.toISOString();
-        
-        // Track daily visits
-        if (!this.analytics.dailyVisits[today]) {
-            this.analytics.dailyVisits[today] = {
-                visits: 0,
-                uniqueVisitors: new Set(),
-                sessions: [],
-                date: today
+        try {
+            console.log('Tracking visit...');
+            const now = new Date();
+            const today = now.toDateString();
+            const sessionId = this.generateSessionId();
+            
+            // Update total visits
+            this.analytics.totalVisits++;
+            this.analytics.lastVisit = now.toISOString();
+            
+            // Track daily visits
+            if (!this.analytics.dailyVisits[today]) {
+                this.analytics.dailyVisits[today] = {
+                    visits: 0,
+                    uniqueVisitors: new Set(),
+                    sessions: [],
+                    date: today
+                };
+            }
+            
+            this.analytics.dailyVisits[today].visits++;
+            
+            // Track unique visitors (simplified - based on localStorage presence)
+            const visitorId = this.getVisitorId();
+            this.analytics.dailyVisits[today].uniqueVisitors.add(visitorId);
+            
+            // Track session
+            const session = {
+                id: sessionId,
+                start: now.toISOString(),
+                visitorId: visitorId,
+                userAgent: navigator.userAgent,
+                referrer: document.referrer || 'Direct',
+                url: window.location.href
             };
+            
+            this.analytics.sessions.push(session);
+            this.analytics.dailyVisits[today].sessions.push(session);
+            
+            // Keep only last 30 days of detailed data
+            this.cleanOldAnalytics();
+            
+            this.saveAnalytics();
+            
+            console.log('Visit tracked successfully:', {
+                totalVisits: this.analytics.totalVisits,
+                uniqueVisitors: this.analytics.uniqueVisitors,
+                todayVisits: this.analytics.dailyVisits[today].visits
+            });
+            
+            // Track page visibility changes
+            this.trackPageVisibility(sessionId);
+        } catch (error) {
+            console.error('Error tracking visit:', error);
         }
-        
-        this.analytics.dailyVisits[today].visits++;
-        
-        // Track unique visitors (simplified - based on localStorage presence)
-        const visitorId = this.getVisitorId();
-        this.analytics.dailyVisits[today].uniqueVisitors.add(visitorId);
-        
-        // Track session
-        const session = {
-            id: sessionId,
-            start: now.toISOString(),
-            visitorId: visitorId,
-            userAgent: navigator.userAgent,
-            referrer: document.referrer || 'Direct',
-            url: window.location.href
-        };
-        
-        this.analytics.sessions.push(session);
-        this.analytics.dailyVisits[today].sessions.push(session);
-        
-        // Keep only last 30 days of detailed data
-        this.cleanOldAnalytics();
-        
-        this.saveAnalytics();
-        
-        // Track page visibility changes
-        this.trackPageVisibility(sessionId);
     }
 
     generateSessionId() {
@@ -382,10 +399,28 @@ class HabitTracker {
     }
 
     openAnalyticsModal() {
-        const modal = document.getElementById('analyticsModal');
-        this.renderAnalyticsData();
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
+        try {
+            console.log('Opening analytics modal...');
+            const modal = document.getElementById('analyticsModal');
+            
+            if (!modal) {
+                console.error('Analytics modal not found in DOM');
+                this.showToast('Erro: Modal de analytics não encontrado', 'error');
+                return;
+            }
+            
+            console.log('Rendering analytics data...');
+            this.renderAnalyticsData();
+            
+            console.log('Showing modal...');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            console.log('Analytics modal opened successfully');
+        } catch (error) {
+            console.error('Error opening analytics modal:', error);
+            this.showToast('Erro ao abrir analytics: ' + error.message, 'error');
+        }
     }
 
     closeAnalyticsModal() {
@@ -395,63 +430,89 @@ class HabitTracker {
     }
 
     renderAnalyticsData() {
-        const container = document.getElementById('analyticsData');
-        const analytics = this.analytics;
-        
-        // Calculate statistics
-        const totalDays = Object.keys(analytics.dailyVisits).length;
-        const avgVisitsPerDay = totalDays > 0 ? (analytics.totalVisits / totalDays).toFixed(1) : 0;
-        const last7Days = this.getLast7DaysData();
-        const last30Days = this.getLast30DaysData();
-        
-        container.innerHTML = `
-            <div class="analytics-overview">
-                <div class="analytics-card">
-                    <div class="analytics-number">${analytics.totalVisits}</div>
-                    <div class="analytics-label">Total de Visitas</div>
+        try {
+            console.log('Rendering analytics data...');
+            const container = document.getElementById('analyticsData');
+            
+            if (!container) {
+                console.error('Analytics data container not found');
+                return;
+            }
+            
+            const analytics = this.analytics;
+            console.log('Analytics data:', analytics);
+            
+            // Calculate statistics
+            const totalDays = Object.keys(analytics.dailyVisits).length;
+            const avgVisitsPerDay = totalDays > 0 ? (analytics.totalVisits / totalDays).toFixed(1) : 0;
+            const last7Days = this.getLast7DaysData();
+            const last30Days = this.getLast30DaysData();
+            
+            console.log('Statistics calculated:', { totalDays, avgVisitsPerDay, last7Days: last7Days.length, last30Days: last30Days.length });
+            
+            container.innerHTML = `
+                <div class="analytics-overview">
+                    <div class="analytics-card">
+                        <div class="analytics-number">${analytics.totalVisits}</div>
+                        <div class="analytics-label">Total de Visitas</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-number">${analytics.uniqueVisitors}</div>
+                        <div class="analytics-label">Visitantes Únicos</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-number">${totalDays}</div>
+                        <div class="analytics-label">Dias com Dados</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-number">${avgVisitsPerDay}</div>
+                        <div class="analytics-label">Média/Dia</div>
+                    </div>
                 </div>
-                <div class="analytics-card">
-                    <div class="analytics-number">${analytics.uniqueVisitors}</div>
-                    <div class="analytics-label">Visitantes Únicos</div>
-                </div>
-                <div class="analytics-card">
-                    <div class="analytics-number">${totalDays}</div>
-                    <div class="analytics-label">Dias com Dados</div>
-                </div>
-                <div class="analytics-card">
-                    <div class="analytics-number">${avgVisitsPerDay}</div>
-                    <div class="analytics-label">Média/Dia</div>
-                </div>
-            </div>
 
-            <div class="analytics-section">
-                <h4><i class="fas fa-calendar-week"></i> Últimos 7 Dias</h4>
-                <div class="analytics-chart">
-                    ${this.renderDailyChart(last7Days)}
+                <div class="analytics-section">
+                    <h4><i class="fas fa-calendar-week"></i> Últimos 7 Dias</h4>
+                    <div class="analytics-chart">
+                        ${this.renderDailyChart(last7Days)}
+                    </div>
+                    <div class="analytics-summary">
+                        <span><strong>Total:</strong> ${last7Days.reduce((sum, day) => sum + day.visits, 0)} visitas</span>
+                        <span><strong>Média:</strong> ${(last7Days.reduce((sum, day) => sum + day.visits, 0) / 7).toFixed(1)}/dia</span>
+                    </div>
                 </div>
-                <div class="analytics-summary">
-                    <span><strong>Total:</strong> ${last7Days.reduce((sum, day) => sum + day.visits, 0)} visitas</span>
-                    <span><strong>Média:</strong> ${(last7Days.reduce((sum, day) => sum + day.visits, 0) / 7).toFixed(1)}/dia</span>
-                </div>
-            </div>
 
-            <div class="analytics-section">
-                <h4><i class="fas fa-calendar-alt"></i> Últimos 30 Dias</h4>
-                <div class="analytics-table">
-                    ${this.renderDailyTable(last30Days)}
+                <div class="analytics-section">
+                    <h4><i class="fas fa-calendar-alt"></i> Últimos 30 Dias</h4>
+                    <div class="analytics-table">
+                        ${this.renderDailyTable(last30Days)}
+                    </div>
                 </div>
-            </div>
 
-            <div class="analytics-section">
-                <h4><i class="fas fa-info-circle"></i> Informações Técnicas</h4>
-                <div class="analytics-info">
-                    <p><strong>Primeira visita:</strong> ${new Date(analytics.firstVisit).toLocaleString('pt-BR')}</p>
-                    <p><strong>Última visita:</strong> ${analytics.lastVisit ? new Date(analytics.lastVisit).toLocaleString('pt-BR') : 'N/A'}</p>
-                    <p><strong>Fuso horário:</strong> ${analytics.timezone}</p>
-                    <p><strong>Referrer:</strong> ${analytics.referrer}</p>
+                <div class="analytics-section">
+                    <h4><i class="fas fa-info-circle"></i> Informações Técnicas</h4>
+                    <div class="analytics-info">
+                        <p><strong>Primeira visita:</strong> ${new Date(analytics.firstVisit).toLocaleString('pt-BR')}</p>
+                        <p><strong>Última visita:</strong> ${analytics.lastVisit ? new Date(analytics.lastVisit).toLocaleString('pt-BR') : 'N/A'}</p>
+                        <p><strong>Fuso horário:</strong> ${analytics.timezone}</p>
+                        <p><strong>Referrer:</strong> ${analytics.referrer}</p>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+            
+            console.log('Analytics data rendered successfully');
+        } catch (error) {
+            console.error('Error rendering analytics data:', error);
+            const container = document.getElementById('analyticsData');
+            if (container) {
+                container.innerHTML = `
+                    <div class="error-message">
+                        <h4>Erro ao carregar analytics</h4>
+                        <p>Ocorreu um erro ao carregar os dados de analytics: ${error.message}</p>
+                        <p>Verifique o console para mais detalhes.</p>
+                    </div>
+                `;
+            }
+        }
     }
 
     getLast7DaysData() {
@@ -569,6 +630,19 @@ class HabitTracker {
             this.closeAnalyticsModal();
             this.showToast('Dados de analytics limpos com sucesso! 🗑️', 'success');
         }
+    }
+
+    // Debug method for analytics
+    debugAnalytics() {
+        console.log('=== ANALYTICS DEBUG ===');
+        console.log('Analytics object:', this.analytics);
+        console.log('Analytics button exists:', !!document.getElementById('analyticsBtn'));
+        console.log('Analytics modal exists:', !!document.getElementById('analyticsModal'));
+        console.log('Analytics data container exists:', !!document.getElementById('analyticsData'));
+        console.log('LocalStorage analytics:', localStorage.getItem('devhabits-analytics'));
+        console.log('LocalStorage visitor ID:', localStorage.getItem('devhabits-visitor-id'));
+        console.log('========================');
+        return this.analytics;
     }
 
     // Suggestions Methods
