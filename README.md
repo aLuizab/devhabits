@@ -19,6 +19,7 @@ Uma aplicação web completa para rastrear hábitos de programação com cronôm
 - 🌙 Alternância entre modo claro/escuro
 - 📸 Geração de relatórios em imagem
 - 💡 Sistema de sugestões (salvo localmente)
+- 📊 Analytics completo de visitas e estatísticas
 - 📱 Interface responsiva para todos os dispositivos
 
 ## 🚀 Funcionalidades
@@ -71,6 +72,16 @@ Uma aplicação web completa para rastrear hábitos de programação com cronôm
 - **Campo opcional** para email de contato
 - **Envio automático por email** para aluiza.primo@gmail.com
 - **Armazenamento local** como backup das sugestões enviadas
+
+### 📊 Sistema de Analytics
+- **Rastreamento de visitas** diárias e totais
+- **Contagem de visitantes únicos** com identificação local
+- **Gráficos interativos** dos últimos 7 dias
+- **Tabela detalhada** dos últimos 30 dias
+- **Exportação de dados** em formato JSON
+- **Informações técnicas** (referrer, timezone, user agent)
+- **Limpeza automática** de dados antigos (30 dias)
+- **Interface responsiva** para todos os dispositivos
 
 ## 🛠️ Como Usar
 
@@ -351,21 +362,25 @@ A aplicação solicita permissão para enviar notificações do navegador quando
 
 ## 🚀 Melhorias Futuras
 
-- [ ] Gráficos de progresso
-- [ ] Exportar/Importar dados
+- [ ] Gráficos de progresso avançados
+- [ ] Exportar/Importar dados completos
 - [ ] Temas personalizáveis (cores customizadas)
-- [ ] Sons personalizados
-- [ ] Integração com calendário
+- [ ] Sons personalizados para cronômetro
+- [ ] Integração com calendário externo
 - [ ] Metas semanais/mensais
-- [ ] Categorias personalizadas
+- [ ] Categorias personalizadas de hábitos
 - [ ] Relatórios semanais/mensais
 - [ ] Templates de story personalizáveis
 - [ ] Sistema de notificações push
+- [ ] Analytics avançado com gráficos de tendência
+- [ ] Heatmap de atividade
+- [ ] Comparação entre períodos
 - [x] ~~Reset completo de dados~~
 - [x] ~~Integração Pomodoro + Hábitos~~
 - [x] ~~Relatório diário em formato Story~~
 - [x] ~~Modo claro/escuro~~
 - [x] ~~Sistema de sugestões~~
+- [x] ~~Sistema de analytics básico~~
 
 ## 📄 Licença
 
