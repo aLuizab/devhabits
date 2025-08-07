@@ -10,6 +10,17 @@ Uma aplicação web completa para rastrear hábitos de programação com cronôm
 
 *Interface moderna com modo claro/escuro, integração Pomodoro e sistema de sugestões*
 
+### 🌐 **Demo Online**
+**🚀 Experimente agora:** [https://aluizab.github.io/devhabits/](https://aluizab.github.io/devhabits/)
+
+✨ **Funcionalidades disponíveis online:**
+- ⏰ Cronômetro Pomodoro totalmente funcional
+- 📋 Sistema completo de hábitos
+- 🌙 Alternância entre modo claro/escuro
+- 📸 Geração de relatórios em imagem
+- 💡 Sistema de sugestões (salvo localmente)
+- 📱 Interface responsiva para todos os dispositivos
+
 ## 🚀 Funcionalidades
 
 ### ⏰ Cronômetro Pomodoro Personalizável
@@ -248,7 +259,7 @@ A aplicação salva todos os dados localmente no navegador usando localStorage:
 
 1. **Clone o repositório:**
 ```bash
-git clone https://github.com/anaprimo/devhabits.git
+git clone https://github.com/aLuizab/devhabits.git
 cd devhabits
 ```
 
@@ -265,17 +276,19 @@ open index.html
 
 ### 🌐 Uso Online
 
-Acesse a versão online: [https://anaprimo.github.io/devhabits](https://anaprimo.github.io/devhabits)
+**🚀 Acesse agora:** [https://aluizab.github.io/devhabits/](https://aluizab.github.io/devhabits/)
+
+*Aplicação hospedada gratuitamente no GitHub Pages - sempre atualizada com a versão mais recente!*
 
 ## 🤝 Contribuição
 
 ### 🐛 Reportar Bugs
 - Use o sistema de sugestões integrado na aplicação
-- Ou abra uma [Issue no GitHub](https://github.com/anaprimo/devhabits/issues)
+- Ou abra uma [Issue no GitHub](https://github.com/aLuizab/devhabits/issues)
 
 ### 💡 Sugestões de Funcionalidades
 - Use o botão "Sugestões" na aplicação
-- Ou participe das [Discussions](https://github.com/anaprimo/devhabits/discussions)
+- Ou participe das [Discussions](https://github.com/aLuizab/devhabits/discussions)
 
 ### 🔧 Desenvolvimento
 1. Fork o projeto
@@ -291,8 +304,9 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 ## 👩‍💻 Autora
 
 **Ana Primo**
-- GitHub: [@anaprimo](https://github.com/anaprimo)
+- GitHub: [@aLuizab](https://github.com/aLuizab)
 - Email: aluiza.primo@gmail.com
+- LinkedIn: [Ana Luiza Primo](https://linkedin.com/in/ana-luiza-primo)
 
 ## 🙏 Agradecimentos
 
