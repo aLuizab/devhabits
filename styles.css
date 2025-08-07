@@ -130,21 +130,6 @@ header {
     transform: translateY(-2px);
 }
 
-.btn-analytics {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    padding: 8px 16px;
-    border-radius: 25px;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-.btn-analytics:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-}
-
 .main-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1077,49 +1062,7 @@ h2 i {
         height: 35px;
         font-size: 1rem;
     }
-    
-    /* Analytics responsive */
-    .analytics-overview {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-    
-    .analytics-card {
-        padding: 15px;
-    }
-    
-    .analytics-number {
-        font-size: 1.5rem;
-    }
-    
-    .analytics-section {
-        padding: 15px;
-        margin-bottom: 20px;
-    }
-    
-    .chart-container {
-        gap: 4px;
-        min-height: 100px;
-    }
-    
-    .bar {
-        max-width: 30px;
-    }
-    
-    .analytics-summary {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
-    
-    .analytics-table-content {
-        font-size: 0.8rem;
-    }
-    
-    .analytics-table-content th,
-    .analytics-table-content td {
-        padding: 8px;
-    }
+}
     
     /* Reset controls responsive */
     .reset-controls {
@@ -1277,10 +1220,23 @@ textarea.form-control {
     margin-right: 8px;
 }
 
-/* Analytics Modal Styles */
+/* Responsive Design */
+
+/* Responsive Design */
 .analytics-modal .modal-content {
     max-width: 900px;
     width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.analytics-modal .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(90vh - 120px);
+    padding: 20px;
 }
 
 .analytics-overview {
