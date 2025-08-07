@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevHabits - Habit Tracker para Programadores</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-main">
+                    <h1><i class="fas fa-code"></i> DevHabits</h1>
+                    <p>Habit Tracker para Programadores</p>
+                </div>
+                <div class="header-controls">
+                    <button id="themeToggle" class="btn btn-theme" title="Alternar tema">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="suggestionsBtn" class="btn btn-suggestions" title="Enviar sugestão">
+                        <i class="fas fa-lightbulb"></i> Sugestões
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Seção do Pomodoro Timer -->
+            <section class="pomodoro-section">
+                <h2><i class="fas fa-clock"></i> Pomodoro Timer</h2>
+                <div class="timer-container">
+                    <div class="timer-display">
+                        <span id="timer">25:00</span>
+                    </div>
+                    <div class="timer-controls">
+                        <button id="startBtn" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Iniciar
+                        </button>
+                        <button id="pauseBtn" class="btn btn-secondary">
+                            <i class="fas fa-pause"></i> Pausar
+                        </button>
+                        <button id="resetBtn" class="btn btn-danger">
+                            <i class="fas fa-stop"></i> Reset
+                        </button>
+                    </div>
+                    
+                    <!-- Hábito Ativo -->
+                    <div id="activeHabit" class="active-habit" style="display: none;">
+                        <div class="active-habit-content">
+                            <i class="fas fa-play-circle"></i>
+                            <div class="active-habit-info">
+                                <span class="active-habit-label">Trabalhando em:</span>
+                                <span id="activeHabitName" class="active-habit-name"></span>
+                            </div>
+                            <button id="stopHabitBtn" class="btn btn-small btn-danger">
+                                <i class="fas fa-stop"></i> Parar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="timer-modes">
+                        <button id="workMode" class="mode-btn active">Trabalho (25min)</button>
+                        <button id="shortBreakMode" class="mode-btn">Pausa Curta (5min)</button>
+                        <button id="longBreakMode" class="mode-btn">Pausa Longa (15min)</button>
+                    </div>
+                    
+                    <!-- Configurações de Tempo -->
+                    <div class="timer-settings">
+                        <button id="settingsBtn" class="btn btn-settings">
+                            <i class="fas fa-cog"></i> Configurar Tempos
+                        </button>
+                    </div>
+
+                    <!-- Modal de Configurações -->
+                    <div id="settingsModal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3><i class="fas fa-clock"></i> Configurar Tempos do Pomodoro</h3>
+                                <span class="close" id="closeModal">&times;</span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="time-setting">
+                                    <label for="workTime">
+                                        <i class="fas fa-briefcase"></i> Tempo de Trabalho (minutos):
+                                    </label>
+                                    <div class="time-input-group">
+                                        <button class="time-btn decrease" data-target="workTime">-</button>
+                                        <input type="number" id="workTime" min="1" max="60" value="25">
+                                        <button class="time-btn increase" data-target="workTime">+</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="time-setting">
+                                    <label for="shortBreakTime">
+                                        <i class="fas fa-coffee"></i> Pausa Curta (minutos):
+                                    </label>
+                                    <div class="time-input-group">
+                                        <button class="time-btn decrease" data-target="shortBreakTime">-</button>
+                                        <input type="number" id="shortBreakTime" min="1" max="30" value="5">
+                                        <button class="time-btn increase" data-target="shortBreakTime">+</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="time-setting">
+                                    <label for="longBreakTime">
+                                        <i class="fas fa-bed"></i> Pausa Longa (minutos):
+                                    </label>
+                                    <div class="time-input-group">
+                                        <button class="time-btn decrease" data-target="longBreakTime">-</button>
+                                        <input type="number" id="longBreakTime" min="1" max="60" value="15">
+                                        <button class="time-btn increase" data-target="longBreakTime">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="resetDefaults" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> Padrões
+                                </button>
+                                <button id="saveSettings" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Salvar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal de Confirmação de Reset -->
+                    <div id="resetModal" class="modal">
+                        <div class="modal-content modal-danger">
+                            <div class="modal-header">
+                                <h3><i class="fas fa-exclamation-triangle"></i> Confirmar Reset Completo</h3>
+                                <span class="close" id="closeResetModal">&times;</span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="reset-confirmation">
+                                    <div class="warning-icon">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </div>
+                                    <h4>Tem certeza que deseja resetar tudo?</h4>
+                                    <p>Esta ação irá <strong>apagar permanentemente</strong>:</p>
+                                    <ul class="reset-list">
+                                        <li><i class="fas fa-list-check"></i> Todos os hábitos criados</li>
+                                        <li><i class="fas fa-fire"></i> Todas as sequências e estatísticas</li>
+                                        <li><i class="fas fa-clock"></i> Estatísticas do Pomodoro</li>
+                                        <li><i class="fas fa-cog"></i> Configurações personalizadas</li>
+                                        <li><i class="fas fa-history"></i> Todo o histórico de conclusões</li>
+                                    </ul>
+                                    <div class="reset-note">
+                                        <p><i class="fas fa-lightbulb"></i> 
+                                        <strong>Após o reset:</strong> A aplicação ficará completamente limpa, pronta para você criar seus próprios hábitos personalizados.</p>
+                                    </div>
+                                    <div class="confirmation-input">
+                                        <label for="confirmText">
+                                            Digite <strong>"RESETAR"</strong> para confirmar:
+                                        </label>
+                                        <input type="text" id="confirmText" placeholder="Digite RESETAR aqui" autocomplete="off">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="cancelReset" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                                <button id="confirmReset" class="btn btn-danger" disabled>
+                                    <i class="fas fa-trash-restore"></i> Resetar Tudo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pomodoro-stats">
+                        <div class="stat">
+                            <span class="stat-number" id="pomodorosToday">0</span>
+                            <span class="stat-label">Pomodoros Hoje</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="totalPomodoros">0</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção dos Hábitos -->
+            <section class="habits-section">
+                <h2><i class="fas fa-list-check"></i> Meus Hábitos de Programação</h2>
+                
+                <div class="add-habit">
+                    <div class="habit-form">
+                        <input type="text" id="habitInput" placeholder="Adicionar novo hábito (ex: Fazer 3 commits)">
+                        <select id="habitCategory" class="category-select">
+                            <option value="commits">💻 Commits</option>
+                            <option value="estudos">📚 Estudos</option>
+                            <option value="trabalho">🏢 Trabalho</option>
+                            <option value="outros">⚡ Outros</option>
+                        </select>
+                        <button id="addHabitBtn" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros de Categoria -->
+                <div class="category-filters">
+                    <button class="filter-btn active" data-category="all">
+                        <i class="fas fa-list"></i> Todos
+                    </button>
+                    <button class="filter-btn" data-category="commits">
+                        <i class="fas fa-code-branch"></i> Commits
+                    </button>
+                    <button class="filter-btn" data-category="estudos">
+                        <i class="fas fa-graduation-cap"></i> Estudos
+                    </button>
+                    <button class="filter-btn" data-category="trabalho">
+                        <i class="fas fa-briefcase"></i> Trabalho
+                    </button>
+                    <button class="filter-btn" data-category="outros">
+                        <i class="fas fa-star"></i> Outros
+                    </button>
+                </div>
+
+                <div class="habits-list" id="habitsList">
+                    <!-- Hábitos serão adicionados dinamicamente aqui -->
+                </div>
+            </section>
+
+            <!-- Seção de Estatísticas -->
+            <section class="stats-section">
+                <h2><i class="fas fa-chart-line"></i> Estatísticas</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-fire"></i>
+                        <div class="stat-info">
+                            <span class="stat-number" id="currentStreak">0</span>
+                            <span class="stat-label">Sequência Atual</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-trophy"></i>
+                        <div class="stat-info">
+                            <span class="stat-number" id="bestStreak">0</span>
+                            <span class="stat-label">Melhor Sequência</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-check"></i>
+                        <div class="stat-info">
+                            <span class="stat-number" id="completedToday">0</span>
+                            <span class="stat-label">Concluídos Hoje</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-percent"></i>
+                        <div class="stat-info">
+                            <span class="stat-number" id="completionRate">0%</span>
+                            <span class="stat-label">Taxa de Conclusão</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Controles de Reset -->
+                <div class="reset-controls">
+                    <div class="action-buttons">
+                        <button id="generateReportBtn" class="btn btn-report">
+                            <i class="fas fa-camera"></i> Gerar Story
+                        </button>
+                        <button id="resetAllBtn" class="btn btn-reset">
+                            <i class="fas fa-trash-restore"></i> Resetar Tudo
+                        </button>
+                    </div>
+                    <p class="reset-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        O botão "Resetar Tudo" irá apagar todos os hábitos, estatísticas e configurações permanentemente.
+                    </p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modal de Sugestões -->
+    <div id="suggestionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-lightbulb"></i> Enviar Sugestão</h3>
+                <span class="close" id="closeSuggestionsModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="suggestions-form">
+                    <p>Sua opinião é muito importante! Compartilhe suas ideias para melhorar o DevHabits:</p>
+                    
+                    <div class="form-group">
+                        <label for="suggestionType">Tipo de sugestão:</label>
+                        <select id="suggestionType" class="form-control">
+                            <option value="feature">Nova funcionalidade</option>
+                            <option value="improvement">Melhoria</option>
+                            <option value="bug">Reportar bug</option>
+                            <option value="design">Sugestão de design</option>
+                            <option value="other">Outro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="suggestionText">Sua sugestão:</label>
+                        <textarea id="suggestionText" class="form-control" rows="5" 
+                                placeholder="Descreva sua sugestão, ideia ou problema encontrado..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userEmail">Email (opcional):</label>
+                        <input type="email" id="userEmail" class="form-control" 
+                               placeholder="seu@email.com - para receber retorno">
+                    </div>
+                    
+                    <div class="suggestions-info">
+                        <p><i class="fas fa-info-circle"></i> 
+                        Suas sugestões serão enviadas diretamente para nossa equipe de desenvolvimento e nos ajudam a tornar o DevHabits ainda melhor!</p>
+                        <p><i class="fas fa-envelope"></i> 
+                        <strong>Envio automático por email</strong> - Você receberá uma confirmação se informar seu email.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelSuggestion" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button id="sendSuggestion" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Enviar Sugestão
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas oculto para geração de relatório -->
+    <canvas id="reportCanvas" width="1080" height="1920" style="display: none;"></canvas>
+
+    <!-- EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="emailjs-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
