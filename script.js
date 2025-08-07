@@ -91,8 +91,7 @@ class HabitTracker {
 
     setupEventListeners() {
         // Timer controls
-        document.getElementById('startBtn').addEventListener('click', () => this.startTimer());
-        document.getElementById('pauseBtn').addEventListener('click', () => this.pauseTimer());
+        document.getElementById('playPauseBtn').addEventListener('click', () => this.toggleTimer());
         document.getElementById('resetBtn').addEventListener('click', () => this.resetTimer());
 
         // Timer modes
@@ -832,10 +831,25 @@ class HabitTracker {
             setTimeout(() => document.body.removeChild(toast), 300);
         }, 3000);
     }
+
+    toggleTimer() {
+        if (this.timer.isRunning) {
+            this.pauseTimer();
+        } else {
+            this.startTimer();
+        }
+    }
+
     startTimer() {
         if (!this.timer.isRunning) {
             this.timer.isRunning = true;
             document.querySelector('.timer-display').classList.add('active');
+            
+            // Update button to show pause
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+            playPauseBtn.classList.remove('btn-primary');
+            playPauseBtn.classList.add('btn-warning');
             
             this.timer.interval = setInterval(() => {
                 if (this.timer.seconds === 0) {
@@ -857,6 +871,12 @@ class HabitTracker {
         this.timer.isRunning = false;
         document.querySelector('.timer-display').classList.remove('active');
         clearInterval(this.timer.interval);
+        
+        // Update button to show play
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+        playPauseBtn.classList.remove('btn-warning');
+        playPauseBtn.classList.add('btn-primary');
     }
 
     resetTimer() {
@@ -864,6 +884,12 @@ class HabitTracker {
         this.timer.minutes = this.modes[this.timer.mode].minutes;
         this.timer.seconds = 0;
         this.updateTimerDisplay();
+        
+        // Ensure button is in initial state
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+        playPauseBtn.classList.remove('btn-warning');
+        playPauseBtn.classList.add('btn-primary');
     }
 
     setMode(mode) {
@@ -876,6 +902,12 @@ class HabitTracker {
         // Update active mode button
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(mode + 'Mode').classList.add('active');
+        
+        // Ensure play/pause button is in initial state
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+        playPauseBtn.classList.remove('btn-warning');
+        playPauseBtn.classList.add('btn-primary');
     }
 
     timerComplete() {

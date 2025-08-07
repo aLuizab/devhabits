@@ -199,6 +199,26 @@ h2 i {
 
 .timer-controls {
     margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+}
+
+.timer-controls .btn {
+    min-width: 120px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+#playPauseBtn {
+    font-size: 1.1rem;
+    padding: 14px 28px;
+}
+
+#playPauseBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .btn {
@@ -225,6 +245,18 @@ h2 i {
 .btn-secondary {
     background: #ed8936;
     color: white;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+    font-weight: 600;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
 }
 
 .btn-danger {
